@@ -32,7 +32,7 @@ func (d *MyDB) GetUser(userId int64) (User, error) {
 }
 
 func (d *MyDB) AddUser(user User) error {
-    row := d.Db.QueryRow("INSERT INTO users VALUES (?)", user.Id)
+    row := d.Db.QueryRow("INSERT INTO users VALUES (?) ON CONFLICT id DO NOTHING", user.Id)
     if row.Err() != nil {
         return row.Err()
     }
