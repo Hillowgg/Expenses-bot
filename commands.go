@@ -4,12 +4,17 @@ import (
     tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func startCommand(update tgbotapi.Update) {
-    msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello world")
+func StartCommand(update tgbotapi.Update) {
+    user := update.SentFrom()
+    AddUser(user)
+    chat := update.Message.Chat.ID
+
+    msg := tgbotapi.NewMessage(chat, "Welcome to expenses bot!\nWrite /help for help")
     _, err := bot.Send(msg)
     if err != nil {
-        ErrorLog.Printf("Start command: %v\n", err)
+        ErrorLog.Printf("Failed to send start answer %v\n", err)
         return
     }
-    InfoLog.Printf("Start command sent to %v\n", update.Message.From.UserName)
+
+    InfoLog.Printf("Sent Start message to %v (%v)\n", user.UserName, user.ID)
 }
