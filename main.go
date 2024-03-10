@@ -7,17 +7,9 @@ import (
 
     tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
     "github.com/joho/godotenv"
-)
 
-func resolveUpdate(update tgbotapi.Update) {
-    if update.Message == nil {
-        return
-    }
-    switch update.Message.Command() {
-    case "start":
-        startCommand(update)
-    }
-}
+    "main/database"
+)
 
 var bot *tgbotapi.BotAPI
 var (
@@ -26,6 +18,7 @@ var (
     ErrorLog *log.Logger
     FatalLog *log.Logger
 )
+var DB *database.MyDB
 
 func init() {
     flags := log.LstdFlags | log.Lshortfile
@@ -36,6 +29,10 @@ func init() {
     err := godotenv.Load(".env")
     if err != nil {
         FatalLog.Fatalf("Loading .env %v\n", err)
+    }
+    DB, err = database.NewDB("Postgres", os.Getenv("DATABASE_DSN"))
+    if err != nil {
+        FatalLog.Fatalf("Connect to db %v\n", err)
     }
 }
 
@@ -56,5 +53,14 @@ func main() {
     InfoLog.Println("Started polling")
     for update := range updateChan {
         go resolveUpdate(update)
+    }
+}
+func resolveUpdate(update tgbotapi.Update) {
+    if update.Message == nil {
+        return
+    }
+    switch update.Message.Command() {
+    case "start":
+        StartCommand(update)
     }
 }
