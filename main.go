@@ -6,6 +6,7 @@ import (
     "strconv"
 
     tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+    "github.com/joho/godotenv"
 )
 
 func resolveUpdate(update tgbotapi.Update) {
@@ -32,6 +33,10 @@ func init() {
     WarnLog = log.New(os.Stdout, "[WARN] ", flags)
     ErrorLog = log.New(os.Stderr, "[ERROR] ", flags)
     FatalLog = log.New(os.Stderr, "[FATAL] ", flags)
+    err := godotenv.Load(".env")
+    if err != nil {
+        FatalLog.Fatalf("Loading .env %v\n", err)
+    }
 }
 
 // todo: create config loader?
