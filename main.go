@@ -9,12 +9,21 @@ import (
 )
 
 func resolveUpdate(update tgbotapi.Update) {
-
+    if update.Message == nil {
+        return
+    }
+    switch update.Message.Command() {
+    case "start":
+        startCommand(update)
+    }
 }
+
+var bot *tgbotapi.BotAPI
 
 // todo: create config loader?
 func main() {
-    bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
+    var err error
+    bot, err = tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
     if err != nil {
         log.Fatalf("[FATAL] %v\n", err)
     }
