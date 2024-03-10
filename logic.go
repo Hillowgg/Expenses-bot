@@ -9,10 +9,12 @@ func AddUser(user *tgbotapi.User) {
     if user == nil {
         return
     }
-    err := DB.AddUser(database.User{Id: user.ID})
+    s, err := DB.AddUser(database.User{Id: user.ID})
     if err != nil {
-        ErrorLog.Printf("Failed to add user %v\n", err)
+        ErrorLog.Printf("Failed to add user: %v\n", err)
         return
     }
-    InfoLog.Printf("Added user %v (%v)\n", user.UserName, user.ID)
+    if s {
+        InfoLog.Printf("Added user %v (%v)\n", user.UserName, user.ID)
+    }
 }
