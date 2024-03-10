@@ -30,7 +30,7 @@ func init() {
     if err != nil {
         FatalLog.Fatalf("Loading .env %v\n", err)
     }
-    DB, err = database.NewDB("Postgres", os.Getenv("DATABASE_DSN"))
+    DB, err = database.NewDB(os.Getenv("DATABASE_DSN"))
     if err != nil {
         FatalLog.Fatalf("Connect to db %v\n", err)
     }
