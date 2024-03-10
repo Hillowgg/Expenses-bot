@@ -6,11 +6,20 @@ import (
 )
 
 type MyDB struct {
-    db sql.DB
+    Db *sql.DB
+}
+
+func NewDB(driver string, dsn string) (*MyDB, error) {
+    pool, err := sql.Open(driver, dsn)
+    if err != nil {
+        // FatalLog.Fatalf("Failed to connect to db: %v\n", err)
+        return nil, err
+    }
+    return &MyDB{pool}, nil
 }
 
 func (d *MyDB) GetUser(userId int64) (User, error) {
-    row := d.db.QueryRow("SELECT * FROM users WHERE id=?", userId)
+    row := d.Db.QueryRow("SELECT * FROM users WHERE id=?", userId)
     if row.Err() != nil {
         return User{}, row.Err()
     }
@@ -23,7 +32,7 @@ func (d *MyDB) GetUser(userId int64) (User, error) {
 }
 
 func (d *MyDB) GetRecord(recordId int64) (Record, error) {
-    row := d.db.QueryRow("SELECT * FROM records WHERE id=?", recordId)
+    row := d.Db.QueryRow("SELECT * FROM records WHERE id=?", recordId)
 
     if row.Err() != nil {
         return Record{}, row.Err()
@@ -39,7 +48,7 @@ func (d *MyDB) GetRecord(recordId int64) (Record, error) {
 }
 
 func (d *MyDB) GetRecordsByUserId(userId int64) ([]Record, error) {
-    rows, err := d.db.Query("SELECT * FROM records WHERE user_id=?", userId)
+    rows, err := d.Db.Query("SELECT * FROM records WHERE user_id=?", userId)
     if err != nil {
         return nil, err
     }
