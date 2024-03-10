@@ -1,16 +1,19 @@
 package database
 
 import (
-    "database/sql"
+    "context"
+    "errors"
     "time"
+
+    "github.com/jackc/pgx/v5"
 )
 
 type MyDB struct {
-    Db *sql.DB
+    Db *pgx.Conn
 }
 
-func NewDB(driver string, dsn string) (*MyDB, error) {
-    pool, err := sql.Open(driver, dsn)
+func NewDB(dsn string) (*MyDB, error) {
+    pool, err := pgx.Connect(context.Background(), dsn)
     if err != nil {
         // FatalLog.Fatalf("Failed to connect to db: %v\n", err)
         return nil, err
@@ -19,10 +22,7 @@ func NewDB(driver string, dsn string) (*MyDB, error) {
 }
 
 func (d *MyDB) GetUser(userId int64) (User, error) {
-    row := d.Db.QueryRow("SELECT * FROM users WHERE id=?", userId)
-    if row.Err() != nil {
-        return User{}, row.Err()
-    }
+    row := d.Db.QueryRow(context.Background(), "SELECT * FROM users WHERE id=$1", userId)
     var id int64
     err := row.Scan(&id)
     if err != nil {
@@ -31,19 +31,21 @@ func (d *MyDB) GetUser(userId int64) (User, error) {
     return User{id}, nil
 }
 
-func (d *MyDB) AddUser(user User) error {
-    row := d.Db.QueryRow("INSERT INTO users VALUES (?) ON CONFLICT id DO NOTHING", user.Id)
-    if row.Err() != nil {
-        return row.Err()
+func (d *MyDB) AddUser(user User) (bool, error) {
+    row := d.Db.QueryRow(context.Background(), "INSERT INTO users VALUES ($1) ON CONFLICT (id) DO NOTHING RETURNING true", user.Id)
+    var res bool
+    err := row.Scan(&res)
+    if !errors.Is(err, pgx.ErrNoRows) {
+        return res, err
     }
-    return nil
+    return res, nil
 }
 
 func (d *MyDB) GetRecord(recordId int64) (Record, error) {
-    row := d.Db.QueryRow("SELECT * FROM records WHERE id=?", recordId)
+    row := d.Db.QueryRow(context.Background(), "SELECT * FROM records WHERE id=$1", recordId)
 
-    if row.Err() != nil {
-        return Record{}, row.Err()
+    if err := row.Scan(); err != nil {
+        return Record{}, err
     }
     var rec Record
     var t int64
@@ -56,7 +58,7 @@ func (d *MyDB) GetRecord(recordId int64) (Record, error) {
 }
 
 func (d *MyDB) GetRecordsByUserId(userId int64) ([]Record, error) {
-    rows, err := d.Db.Query("SELECT * FROM records WHERE user_id=?", userId)
+    rows, err := d.Db.Query(context.Background(), "SELECT * FROM records WHERE user_id=$1", userId)
     if err != nil {
         return nil, err
     }
@@ -75,15 +77,16 @@ func (d *MyDB) GetRecordsByUserId(userId int64) ([]Record, error) {
 
 func (d *MyDB) AddRecord(rec Record) error {
     row := d.Db.QueryRow(
-        "INSERT INTO records (user_id, name, comment, value, time) VALUES (?, ?, ?, ?, ?)",
+        context.Background(),
+        "INSERT INTO records (user_id, name, comment, value, time) VALUES ($1, $2, $3, $4, $5)",
         rec.UserId,
         rec.Name,
         rec.Comment,
         rec.Value,
         rec.Time.Unix(),
     )
-    if row.Err() != nil {
-        return row.Err()
+    if err := row.Scan(); err != nil {
+        return err
     }
     return nil
 }
