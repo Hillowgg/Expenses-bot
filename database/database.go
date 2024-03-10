@@ -31,6 +31,14 @@ func (d *MyDB) GetUser(userId int64) (User, error) {
     return User{id}, nil
 }
 
+func (d *MyDB) AddUser(user User) error {
+    row := d.Db.QueryRow("INSERT INTO users VALUES (?)", user.Id)
+    if row.Err() != nil {
+        return row.Err()
+    }
+    return nil
+}
+
 func (d *MyDB) GetRecord(recordId int64) (Record, error) {
     row := d.Db.QueryRow("SELECT * FROM records WHERE id=?", recordId)
 
@@ -63,4 +71,19 @@ func (d *MyDB) GetRecordsByUserId(userId int64) ([]Record, error) {
         }
     }
     return recs, nil
+}
+
+func (d *MyDB) AddRecord(rec Record) error {
+    row := d.Db.QueryRow(
+        "INSERT INTO records (user_id, name, comment, value, time) VALUES (?, ?, ?, ?, ?)",
+        rec.UserId,
+        rec.Name,
+        rec.Comment,
+        rec.Value,
+        rec.Time.Unix(),
+    )
+    if row.Err() != nil {
+        return row.Err()
+    }
+    return nil
 }
