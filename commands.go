@@ -11,5 +11,5 @@ func startCommand(update tgbotapi.Update) {
         ErrorLog.Printf("Start command: %v\n", err)
         return
     }
-    InfoLog.Printf("Start command send to %v\n", update.Message.From.UserName)
+    InfoLog.Printf("Start command sent to %v\n", update.Message.From.UserName)
 }
