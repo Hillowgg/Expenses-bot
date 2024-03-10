@@ -1,23 +1,21 @@
 package main
 
 import (
-    "errors"
-
     tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
     "main/database"
 )
 
-func AddUser(user *tgbotapi.User) error {
+func AddUser(user *tgbotapi.User) bool {
     if user == nil {
-        return errors.New("nil user")
+        return false
     }
-    s, err := DB.AddUser(database.User{Id: user.ID})
+    added, err := DB.AddUser(database.User{Id: user.ID})
     if err != nil {
         ErrorLog.Printf("Failed to add user: %v\n", err)
-        return err
+        return added
     }
-    if s {
+    if added {
         InfoLog.Printf("Added user %v (%v)\n", user.UserName, user.ID)
     }
-    return nil
+    return added
 }
