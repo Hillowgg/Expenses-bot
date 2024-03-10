@@ -61,6 +61,6 @@ func resolveUpdate(update tgbotapi.Update) {
     }
     switch update.Message.Command() {
     case "start":
-        StartCommand(update)
+        StartCommand(update.Message)
     }
 }
